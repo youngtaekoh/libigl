@@ -45,8 +45,10 @@ IGL_INLINE bool igl::eigs(
   Scalar conv = 1e-14;
   int max_iter = 100;
   int i = 0;
+  //std::cout<<"start"<<std::endl;
   while(true)
   {
+    //std::cout<<i<<std::endl;
     // Random initial guess
     VectorXS y = VectorXS::Random(n,1);
     Scalar eff_sigma = 0;
@@ -132,8 +134,13 @@ IGL_INLINE bool igl::eigs(
       cerr<<"Failed to converge."<<endl;
       return false;
     }
-    if(i==0 || (S.head(i).array()-sigma).abs().maxCoeff()>1e-14)
+    if(
+      i==0 || 
+      (S.head(i).array()-sigma).abs().maxCoeff()>1e-14 ||
+      ((U.leftCols(i).transpose()*B*x).array().abs()<=1e-7).all()
+      )
     {
+      //cout<<"Found "<<i<<"th mode"<<endl;
       U.col(i) = x;
       S(i) = sigma;
       i++;
@@ -143,14 +150,18 @@ IGL_INLINE bool igl::eigs(
       }
     }else
     {
+      //std::cout<<"i: "<<i<<std::endl;
+      //std::cout<<"  "<<S.head(i).transpose()<<" << "<<sigma<<std::endl;
+      //std::cout<<"  "<<(S.head(i).array()-sigma).abs().maxCoeff()<<std::endl;
+      //std::cout<<"  "<<(U.leftCols(i).transpose()*B*x).array().abs().transpose()<<std::endl;
       // restart with new random guess.
-      cout<<"RESTART!"<<endl;
+      cout<<"igl::eigs RESTART"<<endl;
     }
   }
   // finally sort
   VectorXi I;
   igl::sort(S,1,false,sS,I);
-  sU = igl::slice(U,I,2);
+  igl::slice(U,I,2,sU);
   sS /= rescale;
   sU /= sqrt(rescale);
   return true;
@@ -158,8 +169,8 @@ IGL_INLINE bool igl::eigs(
 
 #ifdef IGL_STATIC_LIBRARY
 // Explicit template instantiation
-template bool igl::eigs<double, double, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::SparseMatrix<double, 0, int> const&, Eigen::SparseMatrix<double, 0, int> const&, unsigned long, igl::EigsType, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
+template bool igl::eigs<double, double, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >(Eigen::SparseMatrix<double, 0, int> const&, Eigen::SparseMatrix<double, 0, int> const&, const size_t, igl::EigsType, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> >&, Eigen::PlainObjectBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> >&);
 #ifdef WIN32
-template bool igl::eigs<double, double, Eigen::Matrix<double,-1,-1,0,-1,-1>, Eigen::Matrix<double,-1,1,0,-1,1> >(Eigen::SparseMatrix<double,0,int> const &,Eigen::SparseMatrix<double,0,int> const &,unsigned long long, igl::EigsType, Eigen::PlainObjectBase< Eigen::Matrix<double,-1,-1,0,-1,-1> > &, Eigen::PlainObjectBase<Eigen::Matrix<double,-1,1,0,-1,1> > &);
+template bool igl::eigs<double, double, Eigen::Matrix<double,-1,-1,0,-1,-1>, Eigen::Matrix<double,-1,1,0,-1,1> >(Eigen::SparseMatrix<double,0,int> const &,Eigen::SparseMatrix<double,0,int> const &, const size_t, igl::EigsType, Eigen::PlainObjectBase< Eigen::Matrix<double,-1,-1,0,-1,-1> > &, Eigen::PlainObjectBase<Eigen::Matrix<double,-1,1,0,-1,1> > &);
 #endif
 #endif

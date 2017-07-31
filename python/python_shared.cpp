@@ -53,6 +53,7 @@ PYBIND11_PLUGIN(pyigl) {
            MeshBooleanType
            SolverStatus
            active_set
+           adjacency_list
            arap
            avg_edge_length
            barycenter
@@ -90,6 +91,7 @@ PYBIND11_PLUGIN(pyigl) {
            edge_topology
            eigs
            embree_ambient_occlusion
+           embree_line_mesh_intersection
            embree_reorient_facets_raycast
            find_cross_field_singularities
            fit_rotations
@@ -150,6 +152,8 @@ PYBIND11_PLUGIN(pyigl) {
            winding_number
            writeMESH
            writeOBJ
+           writePLY
+           readPLY
 
     )pyigldoc");
 

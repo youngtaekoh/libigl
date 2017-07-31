@@ -48,11 +48,14 @@ endif()
 include_directories(${PYTHON_INCLUDE_DIR} include)
 
 ## include pybind
-include_directories(${PROJECT_SOURCE_DIR}/../external/nanogui/ext/pybind11/include)
+set(PYBIND11_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/../external/nanogui/ext/pybind11/include CACHE PATH "Path to pybind11/include")
+include_directories(${PYBIND11_INCLUDE_DIR})
 
 ## include libigl
 option(LIBIGL_USE_STATIC_LIBRARY "Use LibIGL as static library" OFF)
 option(LIBIGL_WITH_VIEWER           "Use OpenGL viewer"  ON)
+option(LIBIGL_WITH_OPENGL           "Use viewer"         ON)
+option(LIBIGL_WITH_OPENGL_GLFW      "Use GLFW"           ON)
 option(LIBIGL_WITH_NANOGUI          "Use Nanogui menu"   OFF)
 option(LIBIGL_WITH_CGAL             "Use CGAL"           OFF)
 option(LIBIGL_WITH_BOOLEAN          "Use Cork boolean"   OFF)
@@ -186,7 +189,7 @@ elseif (UNIX)
     endif()
 
     if (NOT ${U_CMAKE_BUILD_TYPE} MATCHES DEBUG)
-      add_custom_command(TARGET pyigl POST_BUILD COMMAND strip -u -r ${CMAKE_CURRENT_BINARY_DIR}/../pyigl.so)
+      add_custom_command(TARGET pyigl POST_BUILD COMMAND strip -u -r ${PROJECT_SOURCE_DIR}/pyigl.so)
     endif()
   else()
 
@@ -196,18 +199,18 @@ elseif (UNIX)
     endif()
 
     if (NOT ${U_CMAKE_BUILD_TYPE} MATCHES DEBUG)
-      add_custom_command(TARGET pyigl POST_BUILD COMMAND strip ${CMAKE_CURRENT_BINARY_DIR}/../pyigl.so)
+      add_custom_command(TARGET pyigl POST_BUILD COMMAND strip ${PROJECT_SOURCE_DIR}/pyigl.so)
     endif()
   endif()
 endif()
 
 if (LIBIGL_WITH_PYTHON AND LIBIGL_WITH_NANOGUI)
   # Copy the nanogui python lib after compilation
-  get_target_property(NANOGUI_LIB nanogui_python LOCATION)
+  get_target_property(NANOGUI_LIB nanogui-python LOCATION)
   add_custom_target(copy ALL)
   add_custom_command(
         TARGET copy
-        COMMAND ${CMAKE_COMMAND} -E copy ${NANOGUI_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../
+        COMMAND ${CMAKE_COMMAND} -E copy ${NANOGUI_LIB} ${PROJECT_SOURCE_DIR}
         )
   add_dependencies(copy pyigl)
 

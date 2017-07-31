@@ -6,6 +6,7 @@
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can
 // obtain one at http://mozilla.org/MPL/2.0/.
 #include "straighten_seams.h"
+#include "LinSpaced.h"
 #include "on_boundary.h"
 #include "sparse.h"
 #include "max.h"
@@ -84,7 +85,7 @@ IGL_INLINE void igl::straighten_seams(
   {
     SparseMatrix<bool> OEQR;
     sparse(
-      VectorXi::LinSpaced(OT.rows(),0,OT.rows()-1),
+      igl::LinSpaced<VectorXi >(OT.rows(),0,OT.rows()-1),
       OFMAP,
       Array<bool,Dynamic,1>::Ones(OT.rows(),1),
       OT.rows(),
@@ -139,7 +140,7 @@ IGL_INLINE void igl::straighten_seams(
   SparseMatrix<bool> VTOT;
   {
     Eigen::MatrixXi I = 
-      VectorXi::LinSpaced(OT.rows(),0,OT.rows()-1).replicate(1,2);
+      igl::LinSpaced<VectorXi >(OT.rows(),0,OT.rows()-1).replicate(1,2);
     sparse(
       OT,
       I,
@@ -251,6 +252,9 @@ IGL_INLINE void igl::straighten_seams(
             (PI.colwise().maxCoeff() - PI.colwise().minCoeff()).norm();
           // Do not collapse boundaries to fewer than 3 vertices
           const bool allow_boundary_collapse = false;
+          assert(PI.size() >= 2);
+          const bool is_closed = PI(0) == PI(PI.size()-1);
+          assert(!is_closed ||  vpath.size() >= 4);
           Scalar eff_tol = std::min(tol,2.);
           VectorXi UIc;
           while(true)
@@ -258,7 +262,7 @@ IGL_INLINE void igl::straighten_seams(
             MatrixX2S UPI,UTvpath;
             ramer_douglas_peucker(PI,eff_tol*bbd,UPI,UIc,UTvpath);
             slice_into(UTvpath,vpath,1,UT);
-            if(allow_boundary_collapse)
+            if(!is_closed || allow_boundary_collapse)
             {
               break;
             }
@@ -285,7 +289,7 @@ IGL_INLINE void igl::straighten_seams(
             find(OEQIcT,Icc,II,IV);
             assert(II.size() == Ic.size() && 
               (II.array() ==
-              VectorXi::LinSpaced(Ic.size(),0,Ic.size()-1).array()).all());
+              igl::LinSpaced<VectorXi >(Ic.size(),0,Ic.size()-1).array()).all());
             assert(Icc.size() == Ic.size());
             const int cc = C(Icc(0));
             Eigen::VectorXi CIcc;
